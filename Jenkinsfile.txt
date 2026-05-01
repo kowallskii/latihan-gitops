@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    stages {
+        stage('Persiapan') {
+            steps {
+                echo 'Menarik kode terbaru dari GitHub PoinPik...'
+            }
+        }
+        stage('Validasi Manifest') {
+            steps {
+                echo 'Memeriksa folder k8s...'
+                sh 'ls -R k8s/'
+            }
+        }
+        stage('Selesai') {
+            steps {
+                echo 'Pipeline berhasil dijalankan. ArgoCD akan mengambil alih deployment.'
+            }
+        }
+    }
+}
