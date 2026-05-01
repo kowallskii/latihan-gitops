@@ -1,18 +1,11 @@
 pipeline {
     agent any
-
-pipeline {
-    agent any
     
-    // Tambahkan bagian ini agar Jenkins memanggil tool Docker yang tadi disetting
+    // Bagian tools untuk memanggil Docker yang sudah disetting di Manage Jenkins
     tools {
         dockerTool 'docker' 
     }
 
-    environment {
-        DOCKER_HUB_USER = 'canda22'
-        // ... sisa kode lainnya
-    
     environment {
         // SESUAIKAN DENGAN USERNAME DOCKER KAMU
         DOCKER_HUB_USER = 'canda22'
@@ -24,11 +17,11 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    // Membuat image dengan tag nomor build Jenkins
                     echo "Building Docker Image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                    // Build image menggunakan Dockerfile di root repo
                     sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
                     
-                    // Login dan Push ke Docker Hub menggunakan kredensial yang tadi dibuat
+                    // Login dan Push ke Docker Hub
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                         sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                         sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
@@ -40,17 +33,16 @@ pipeline {
         stage('Update Manifest di GitHub') {
             steps {
                 script {
-                    // Mengedit file deploy.yaml dan push balik ke GitHub
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                         sh """
-                            # Ganti baris image di deploy.yaml secara otomatis
+                            # Edit file deploy.yaml agar menggunakan image tag terbaru
                             sed -i 's|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g' k8s/deploy.yaml
                             
-                            # Konfigurasi git identitas Jenkins
+                            # Setting identitas pengirim (bot)
                             git config user.email "jenkins@poinpik.com"
                             git config user.name "Jenkins Bot"
                             
-                            # Push perubahan manifest agar ArgoCD mendeteksi
+                            # Push balik ke GitHub agar ArgoCD sinkron
                             git add k8s/deploy.yaml
                             git commit -m "chore: update image version to ${env.BUILD_NUMBER} [skip ci]"
                             git push https://${GIT_USER}:${GIT_TOKEN}@${GIT_REPO_URL} main
