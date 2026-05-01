@@ -1,20 +1,50 @@
 pipeline {
     agent any
+    
+    environment {
+        // SESUAIKAN DENGAN USERNAME DOCKER KAMU
+        DOCKER_HUB_USER = 'canda22'
+        DOCKER_IMAGE    = "${DOCKER_HUB_USER}/poinpik-apps"
+        GIT_REPO_URL    = "github.com/kowallskii/latihan-gitops.git"
+    }
+
     stages {
-        stage('Persiapan') {
+        stage('Docker Build & Push') {
             steps {
-                echo 'Menarik kode terbaru dari GitHub PoinPik...'
+                script {
+                    // Membuat image dengan tag nomor build Jenkins
+                    echo "Building Docker Image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
+                    
+                    // Login dan Push ke Docker Hub menggunakan kredensial yang tadi dibuat
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
+                        sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                    }
+                }
             }
         }
-        stage('Validasi Manifest') {
+
+        stage('Update Manifest di GitHub') {
             steps {
-                echo 'Memeriksa folder k8s...'
-                sh 'ls -R k8s/'
-            }
-        }
-        stage('Selesai') {
-            steps {
-                echo 'Pipeline berhasil dijalankan. ArgoCD akan mengambil alih deployment.'
+                script {
+                    // Mengedit file deploy.yaml dan push balik ke GitHub
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
+                        sh """
+                            # Ganti baris image di deploy.yaml secara otomatis
+                            sed -i 's|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g' k8s/deploy.yaml
+                            
+                            # Konfigurasi git identitas Jenkins
+                            git config user.email "jenkins@poinpik.com"
+                            git config user.name "Jenkins Bot"
+                            
+                            # Push perubahan manifest agar ArgoCD mendeteksi
+                            git add k8s/deploy.yaml
+                            git commit -m "chore: update image version to ${env.BUILD_NUMBER} [skip ci]"
+                            git push https://${GIT_USER}:${GIT_TOKEN}@${GIT_REPO_URL} main
+                        """
+                    }
+                }
             }
         }
     }
