@@ -1,5 +1,17 @@
 pipeline {
     agent any
+
+pipeline {
+    agent any
+    
+    // Tambahkan bagian ini agar Jenkins memanggil tool Docker yang tadi disetting
+    tools {
+        dockerTool 'docker' 
+    }
+
+    environment {
+        DOCKER_HUB_USER = 'canda22'
+        // ... sisa kode lainnya
     
     environment {
         // SESUAIKAN DENGAN USERNAME DOCKER KAMU
