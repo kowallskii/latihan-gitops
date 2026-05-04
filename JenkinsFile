@@ -25,6 +25,12 @@ spec:
 """
         }
     }
+
+    // --- BAGIAN PARAMETER DIMULAI DI SINI ---
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Input branch yang ingin di-build (contoh: main, staging, dev)')
+    }
+    // --- BAGIAN PARAMETER SELESAI ---
     
     environment {
         DOCKER_HUB_USER = 'canda22'
@@ -33,19 +39,27 @@ spec:
     }
 
     stages {
+        stage('Checkout Source Code') {
+            steps {
+                // Checkout menggunakan parameter BRANCH_NAME
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: "${params.BRANCH_NAME}"]], 
+                    userRemoteConfigs: [[url: "https://${GIT_URL_ONLY}"]]
+                ])
+            }
+        }
+
         stage('Docker Build & Push') {
             steps {
                 container('docker') {
                     script {
-                        // Menunggu Docker Daemon siap
                         sh 'until docker info; do sleep 1; done'
-                        
-                        // Build dengan tag nomor build Jenkins
-                        sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
+                        // Kita tambahkan nama branch ke tag agar tidak tertukar
+                        sh "docker build -t ${DOCKER_IMAGE}:${params.BRANCH_NAME}-${env.BUILD_NUMBER} ."
                         
                         withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                             sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
-                            sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                            sh "docker push ${DOCKER_IMAGE}:${params.BRANCH_NAME}-${env.BUILD_NUMBER}"
                         }
                     }
                 }
@@ -58,22 +72,17 @@ spec:
                     script {
                         withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                             sh """
-                                # 1. Bersihkan folder kerja agar fresh
                                 find . -mindepth 1 -delete
-                                
-                                # 2. Clone repo manifest
                                 git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} repo-temp
                                 cd repo-temp
                                 
-                                # 3. Update image version di YAML
-                                # Menggunakan sed untuk mengganti tag image ke yang terbaru
-                                sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
+                                # Update tag image dengan menyertakan nama branch
+                                sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${params.BRANCH_NAME}-${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
-                                # 4. Config & Push
                                 git config user.email "jenkins@poinpik.com"
                                 git config user.name "Jenkins Bot"
                                 git add k8s/deploy.yaml
-                                git commit -m "chore: update node-app image to version ${env.BUILD_NUMBER} [skip ci]"
+                                git commit -m "chore: update image to ${params.BRANCH_NAME}-${env.BUILD_NUMBER} [skip ci]"
                                 git push origin main
                             """
                         }
