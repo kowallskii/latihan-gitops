@@ -5,7 +5,7 @@ const port = 3000;
 app.get('/', (req, res) => {
   res.send(`
     <div style="text-align: center; font-family: sans-serif; margin-top: 50px;">
-      <h1>🚀 Deploy Berhasil!</h1>
+      <h1>🚀 Mememek JS Terbang</h1>
       <p>Aplikasi Node.js ini berjalan di Kubernetes via Jenkins & ArgoCD.</p>
       <p>Identifier: <b>kowallskii</b> | Repo: <b>poinpik-apps</b></p>
     </div>
