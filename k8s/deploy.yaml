@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nginx-container
-        image: canda22/poinpik-apps:22
+        image: canda22/poinpik-apps:23
         ports:
         - containerPort: 80
 ---
