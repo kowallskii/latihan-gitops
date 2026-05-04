@@ -6,7 +6,6 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  # Kontainer utama untuk build docker
   - name: docker
     image: docker:24.0.5-dind
     securityContext:
@@ -14,7 +13,6 @@ spec:
     volumeMounts:
     - name: dind-storage
       mountPath: /var/lib/docker
-  # Kontainer pembantu untuk git & shell commands
   - name: base
     image: alpine/git:latest
     command:
@@ -39,12 +37,8 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        // Menunggu docker daemon siap (penting di Kubernetes)
                         sh 'until docker info; do sleep 1; done'
-                        
-                        echo "Building Docker Image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
                         sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
-                        
                         withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                             sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                             sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
@@ -56,12 +50,13 @@ spec:
 
         stage('Update Manifest di GitHub') {
             steps {
-                // Gunakan kontainer 'base' yang sudah ada git-nya
                 container('base') {
                     script {
+                        // Tambahkan checkout scm agar folder .git ada di kontainer ini
+                        checkout scm 
+                        
                         withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                             sh """
-                                # Edit file deploy.yaml
                                 sed -i "s|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
                                 git config user.email "jenkins@poinpik.com"
