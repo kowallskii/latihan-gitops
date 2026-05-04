@@ -37,8 +37,12 @@ spec:
             steps {
                 container('docker') {
                     script {
+                        // Menunggu Docker Daemon siap
                         sh 'until docker info; do sleep 1; done'
+                        
+                        // Build dengan tag nomor build Jenkins
                         sh "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
+                        
                         withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                             sh "echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin"
                             sh "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
@@ -53,27 +57,23 @@ spec:
                 container('base') {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
-                            // Semua perintah digabung dalam satu blok SH agar folder .git tidak hilang
                             sh """
-                                # 1. Bersihkan folder kerja
+                                # 1. Bersihkan folder kerja agar fresh
                                 find . -mindepth 1 -delete
                                 
-                                # 2. Clone ke sub-folder agar aman
+                                # 2. Clone repo manifest
                                 git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} repo-temp
-                                
-                                # 3. Pindah ke folder repo dan lakukan semua operasi di sana
                                 cd repo-temp
                                 
-                                # Update file manifest
-                                sed -i "s|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
+                                # 3. Update image version di YAML
+                                # Menggunakan sed untuk mengganti tag image ke yang terbaru
+                                sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
-                                # Config Git
+                                # 4. Config & Push
                                 git config user.email "jenkins@poinpik.com"
                                 git config user.name "Jenkins Bot"
-                                
-                                # Add, Commit, dan Push
                                 git add k8s/deploy.yaml
-                                git commit -m "chore: update image version to ${env.BUILD_NUMBER} [skip ci]"
+                                git commit -m "chore: update node-app image to version ${env.BUILD_NUMBER} [skip ci]"
                                 git push origin main
                             """
                         }
