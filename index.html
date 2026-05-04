@@ -1,1 +1,65 @@
-<h1>Halo! Ini aplikasi pertama PoinPik versi 1.2 yang dideploy pakai GitOps.</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoinPik Dashboard - GitOps Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-2xl w-full bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 p-8 md:p-12 animate-fade-in">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    PoinPik Apps
+                </h1>
+                <p class="text-slate-400 mt-2">Continuous Deployment via GitOps</p>
+            </div>
+            <div class="bg-green-500/20 text-green-400 px-4 py-1 rounded-full text-sm font-medium border border-green-500/30">
+                ● Live on Cluster
+            </div>
+        </div>
+
+        <!-- Pipeline Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                <p class="text-slate-500 text-sm">Last Build Status</p>
+                <p class="text-xl font-semibold text-cyan-400 font-mono italic">#20 - SUCCESS</p>
+            </div>
+            <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                <p class="text-slate-500 text-sm">Deployment Tool</p>
+                <p class="text-xl font-semibold text-blue-400">ArgoCD & Jenkins</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="space-y-6 text-slate-300">
+            <p>
+                Selamat! Aplikasi ini berhasil dideploy otomatis menggunakan **Jenkins Pipeline** yang berjalan di atas Kubernetes on-premise.
+            </p>
+            <div class="bg-slate-700/30 p-4 rounded-xl text-sm italic border-l-4 border-cyan-500">
+                "Setiap commit di repo <strong>latihan-gitops</strong> sekarang akan memicu update otomatis ke cluster tanpa sentuhan manual."
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-12 pt-8 border-t border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-cyan-500 rounded-full animate-ping"></div>
+                <span class="text-sm text-slate-400">Monitoring Active</span>
+            </div>
+            <p class="text-xs text-slate-500">© 2026 PoinPik Creator Project</p>
+        </div>
+    </div>
+
+</body>
+</html>
