@@ -55,15 +55,17 @@ spec:
                     script {
                         withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
                             sh """
-                                # 1. Bersihkan direktori dan clone ulang secara manual di dalam container ini
-                                rm -rf *
-                                git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} .
+                                # 1. Bersihkan SEMUA file termasuk file tersembunyi (.git)
+                                # Perintah ini menghapus semuanya agar folder benar-benar kosong
+                                find . -mindepth 1 -delete
+                                
+                                # 2. Clone manual (pastikan hanya satu baris)
                                 git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} .
 
-                                # 2. Update manifest
+                                # 3. Update manifest
                                 sed -i "s|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
-                                # 3. Push perubahan
+                                # 4. Push perubahan
                                 git config user.email "jenkins@poinpik.com"
                                 git config user.name "Jenkins Bot"
                                 git add k8s/deploy.yaml
