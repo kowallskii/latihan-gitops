@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: nodejs-container  # Diubah dari nginx-container agar lebih deskriptif
-        image: canda22/poinpik-apps:23 # Tag ini akan diupdate otomatis oleh Jenkins
+        image: canda22/poinpik-apps:24
         ports:
         - containerPort: 3000   # WAJIB 3000 karena Node.js app.js dengerin port 3000
 ---
