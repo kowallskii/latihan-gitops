@@ -58,7 +58,8 @@ spec:
                                 # 1. Bersihkan direktori dan clone ulang secara manual di dalam container ini
                                 rm -rf *
                                 git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} .
-                                
+                                git clone https://${GIT_USER}:${GIT_TOKEN}@${GIT_URL_ONLY} .
+
                                 # 2. Update manifest
                                 sed -i "s|image: .*|image: ${DOCKER_IMAGE}:${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
