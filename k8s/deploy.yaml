@@ -6,8 +6,7 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      # PENTING: Label ini harus sesuai dengan selector di Service Anda
-      app: exercise3 
+      app: exercise3
   template:
     metadata:
       labels:
@@ -15,7 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx-container
-        # Gunakan tag image terbaru dari hasil build Jenkins Anda
         image: canda22/poinpik-apps:22
         ports:
         - containerPort: 80
