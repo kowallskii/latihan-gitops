@@ -29,7 +29,6 @@ spec:
     // --- BAGIAN PARAMETER DIMULAI DI SINI ---
     parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Input branch yang ingin di-build (contoh: main, staging, dev)')
-        choice(name: 'Environment', choices: ['default', 'development', 'production'], description: 'Pilih namespace target deployment')
     }
     // --- BAGIAN PARAMETER SELESAI ---
     
