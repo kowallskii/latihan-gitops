@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nodejs-container
-        image: canda22/poinpik-apps:main-27
+        image: canda22/poinpik-apps:main-28
         ports:
         - containerPort: 3000   # Node.js app tetap mendengarkan port 3000
 ---
