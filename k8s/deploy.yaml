@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app-poinpik
-  namespace: default
+  namespace: null
 spec:
   replicas: 2
   selector:
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: nodejs-container
-        image: canda22/poinpik-apps:main-29
+        image: canda22/poinpik-apps:main-30
         ports:
         - containerPort: 3000   # Node.js app tetap mendengarkan port 3000
 ---
@@ -23,7 +23,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: service-poinpik     # Nama Service diubah sesuai permintaanmu
-  namespace: default
+  namespace: null
 spec:
   type: NodePort
   selector:
