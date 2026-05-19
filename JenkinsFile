@@ -29,6 +29,7 @@ spec:
     // --- BAGIAN PARAMETER DIMULAI DI SINI ---
     parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Input branch yang ingin di-build (contoh: main, staging, dev)')
+        choice(name: 'Environment', choices: ['default', 'development', 'production'], description: 'Pilih namespace target deployment')
     }
     // --- BAGIAN PARAMETER SELESAI ---
     
@@ -79,10 +80,13 @@ spec:
                                 # Update tag image dengan menyertakan nama branch
                                 sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${params.BRANCH_NAME}-${env.BUILD_NUMBER}|g" k8s/deploy.yaml
                                 
+                                # Update namespace secara dinamis berdasarkan pilihan parameter 'Environment'
+                                sed -i "s|namespace: .*|namespace: ${params.Environment}|g" k8s/deploy.yaml
+                                
                                 git config user.email "jenkins@poinpik.com"
                                 git config user.name "Jenkins Bot"
                                 git add k8s/deploy.yaml
-                                git commit -m "chore: update image to ${params.BRANCH_NAME}-${env.BUILD_NUMBER} [skip ci]"
+                                git commit -m "chore: update image to ${params.BRANCH_NAME}-${env.BUILD_NUMBER} and namespace to ${params.Environment} [skip ci]"
                                 git push origin main
                             """
                         }
