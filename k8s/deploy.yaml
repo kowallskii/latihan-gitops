@@ -32,4 +32,4 @@ spec:
     - protocol: TCP
       port: 80              # Port akses internal klaster (ClusterIP)
       targetPort: 3000      # Meneruskan trafik ke containerPort 3000 milik Node.js
-      nodePort: 32324       # Diubah ke 32324 agar aman dan TIDAK BENTROK
+      nodePort: 32324 
